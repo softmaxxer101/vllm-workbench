@@ -437,6 +437,15 @@ class VLLMProcessManager:
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
         env.setdefault("VLLM_LOGGING_LEVEL", "INFO")
+        # vLLM shells out to helpers installed next to its own interpreter (for
+        # example `ninja` for flashinfer's JIT kernels). WORKBENCH_VLLM_LAUNCH
+        # may be an absolute path pointing at a different virtualenv, which is
+        # not on PATH, so prepend the launcher's bin directory.
+        launcher = self.settings.launcher
+        if not self.settings.vllm_mock and launcher:
+            launcher_dir = os.path.dirname(os.path.abspath(launcher[0]))
+            if os.path.isdir(launcher_dir):
+                env["PATH"] = launcher_dir + os.pathsep + env.get("PATH", "")
         if self.settings.hf_token:
             env["HF_TOKEN"] = self.settings.hf_token
         # Avoid inheriting a stale proxy for loopback calls from model tooling.
