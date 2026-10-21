@@ -1,0 +1,37 @@
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+backend/.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node / Next.js
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+*.tsbuildinfo
+pnpm-debug.log*
+
+# Runtime data (managed config, logs, downloaded models)
+data/
+backend/data/
+backend/logs/
+models/
+
+# Local agent runtime artifacts
+.freebuff/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,80 @@
+name: Deploy UI to GitHub Pages
+
+# Publishes the static frontend only. The FastAPI backend and vLLM engine are
+# not part of this artifact: Pages serves files, it cannot run them. Set the
+# repository variable NEXT_PUBLIC_API_URL to a reachable backend before this
+# site can talk to an engine. See docs/DEPLOYMENT.md.
+
+# Manual on purpose: a repository without Pages enabled would otherwise get a
+# failing run on every push. Enable Pages, then run this workflow by hand (or
+# add a push trigger once the site is configured).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve base path
+        id: base
+        run: |
+          if [[ "${{ github.event.repository.name }}" == *.github.io ]]; then
+            echo "value=" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=/${{ github.event.repository.name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build static export
+        working-directory: frontend
+        env:
+          NEXT_EXPORT: "1"
+          # Repository variable, e.g. https://gpu-box.example.com:8443
+          # Without one, the UI keeps its http://localhost:8000 default and
+          # cannot reach a backend from a public page.
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }}
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.base.outputs.value }}
+        run: pnpm build
+
+      - name: Disable Jekyll processing
+        run: touch frontend/out/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

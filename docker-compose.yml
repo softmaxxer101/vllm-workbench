@@ -1,0 +1,73 @@
+name: vllm-workbench
+
+services:
+  backend:
+    build:
+      context: ./backend
+      args:
+        VLLM_VERSION: ${VLLM_VERSION:-0.32.0}
+    image: vllm-workbench-backend:local
+    container_name: vllm-workbench-backend
+    restart: unless-stopped
+    # vLLM uses shared memory for tensor-parallel workers; 8 GB is a safe
+    # default for a single consumer GPU, raise it for larger TP setups.
+    shm_size: "8gb"
+    ipc: host
+    ports:
+      - "8000:8000"
+    environment:
+      WORKBENCH_DATA_DIR: /data
+      WORKBENCH_VLLM_HOST: 127.0.0.1
+      WORKBENCH_VLLM_PORT: 8001
+      WORKBENCH_STARTUP_TIMEOUT_S: ${WORKBENCH_STARTUP_TIMEOUT_S:-900}
+      WORKBENCH_API_KEY: ${WORKBENCH_API_KEY:-}
+      WORKBENCH_CORS_ORIGINS: ${WORKBENCH_CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      WORKBENCH_LOG_FORMAT: json
+      HF_HOME: /data/hf
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      - workbench-data:/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked into the browser bundle. Set this to the host/IP clients use
+        # when the workbench is not on localhost.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    image: vllm-workbench-frontend:local
+    container_name: vllm-workbench-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  workbench-data:
