@@ -74,7 +74,7 @@ Linux or WSL2 (vLLM does not run natively on Windows or macOS). Roughly 15 GB of
 image plus model weights.
 
 ```bash
-git clone <your-repo> vllm-workbench
+git clone https://github.com/softmaxxer101/vllm-workbench.git
 cd vllm-workbench
 
 cp .env.example .env          # optional, but review it
@@ -99,8 +99,21 @@ troubleshooting — is in **[docs/LOCAL_LLM.md](docs/LOCAL_LLM.md)**.
 
 ## Quick start (native, one command)
 
-Already have Python 3.11–3.13, [uv](https://docs.astral.sh/uv/), Node 22, pnpm and vLLM on a Linux
-or WSL2 machine? The launcher starts both servers, waits for them to answer and prints the URL:
+Needs Linux or WSL2 with an NVIDIA GPU, Python 3.11–3.13, [uv](https://docs.astral.sh/uv/),
+Node 22 and pnpm.
+
+**First time only** — get the code and install vLLM in its own environment (about 10 GB of CUDA
+wheels, one time):
+
+```bash
+git clone https://github.com/softmaxxer101/vllm-workbench.git
+cd vllm-workbench
+uv venv ~/vllm-env --python 3.12
+uv pip install --python ~/vllm-env/bin/python vllm
+```
+
+**Every session after that** is one command — it starts both servers, waits for them to answer
+and prints the URL:
 
 ```bash
 ./dev.sh                 # or: make dev
@@ -116,8 +129,9 @@ WORKBENCH_VLLM_LAUNCH="$HOME/vllm-env/bin/vllm serve" ./dev.sh
 ```
 
 Everything after this is UI work: **Server → Browse models** to search or download weights,
-**Start engine**, then chat, compare and sweep. The vLLM environment itself is still yours to
-install — see [docs/LOCAL_LLM.md](docs/LOCAL_LLM.md) section 9.
+**Start engine**, then chat, compare and sweep. Already keep vLLM somewhere else, on a different
+port or inside Docker? Point the launcher at it with `WORKBENCH_VLLM_LAUNCH`, or read
+[docs/LOCAL_LLM.md](docs/LOCAL_LLM.md) section 9.
 
 ---
 

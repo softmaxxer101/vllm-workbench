@@ -53,7 +53,7 @@ The second command must print the same GPU table from inside a container. If it 
 ## 2. Install the stack
 
 ```bash
-git clone <your-repo> vllm-workbench
+git clone https://github.com/softmaxxer101/vllm-workbench.git
 cd vllm-workbench
 ```
 
