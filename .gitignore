@@ -21,6 +21,9 @@ frontend/.turbo/
 *.tsbuildinfo
 pnpm-debug.log*
 
+# Launcher logs (dev.sh)
+.dev-logs/
+
 # Runtime data (managed config, logs, downloaded models)
 data/
 backend/data/

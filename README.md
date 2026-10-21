@@ -97,6 +97,30 @@ troubleshooting — is in **[docs/LOCAL_LLM.md](docs/LOCAL_LLM.md)**.
 
 ---
 
+## Quick start (native, one command)
+
+Already have Python 3.11–3.13, [uv](https://docs.astral.sh/uv/), Node 22, pnpm and vLLM on a Linux
+or WSL2 machine? The launcher starts both servers, waits for them to answer and prints the URL:
+
+```bash
+./dev.sh                 # or: make dev
+```
+
+It creates `backend/.venv` and `frontend/node_modules` if they are missing, refuses to start when
+8000 or 3000 is already taken, finds vLLM on `PATH` or at `~/vllm-env`, writes `frontend/.env.local`
+and stops both servers cleanly on `Ctrl+C`. Logs stream to `.dev-logs/`.
+
+```bash
+WORKBENCH_PORT=8010 WEB_PORT=3010 ./dev.sh    # different ports
+WORKBENCH_VLLM_LAUNCH="$HOME/vllm-env/bin/vllm serve" ./dev.sh
+```
+
+Everything after this is UI work: **Server → Browse models** to search or download weights,
+**Start engine**, then chat, compare and sweep. The vLLM environment itself is still yours to
+install — see [docs/LOCAL_LLM.md](docs/LOCAL_LLM.md) section 9.
+
+---
+
 ## Running it locally with a local LLM
 
 Short version:
