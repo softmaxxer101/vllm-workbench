@@ -5,6 +5,30 @@ A local-first studio for running and inspecting your own LLM. It supervises a re
 sweeps parameters, and shows live latency, throughput and hardware telemetry — all from one
 interface.
 
+## Install
+
+Linux or WSL2 with an NVIDIA GPU, Python 3.11–3.13 and [uv](https://docs.astral.sh/uv/), Node 22
+with pnpm, and about 15 GB of free disk. `nvidia-smi` must report your card.
+
+```bash
+git clone https://github.com/softmaxxer101/vllm-workbench.git
+cd vllm-workbench
+uv venv ~/vllm-env --python 3.12 && uv pip install --python ~/vllm-env/bin/python vllm
+./dev.sh
+```
+
+The `vllm` line is the one-time download (~10 GB of CUDA wheels). The first `./dev.sh` installs
+the backend and frontend dependencies, refuses to start if 8000 or 3000 is taken, waits until
+both servers answer, and prints the URL. Then open <http://localhost:3000>, go to **Server →
+Browse models** to pick or download weights, and press **Start engine**. Every later session is
+the same single command.
+
+- Different ports: `WORKBENCH_PORT=8010 WEB_PORT=3010 ./dev.sh`
+- vLLM somewhere else: `WORKBENCH_VLLM_LAUNCH="$HOME/vllm-env/bin/vllm serve" ./dev.sh`
+- No GPU yet: `WORKBENCH_VLLM_MOCK=1 ./dev.sh` runs a simulated engine, no model loaded
+- Docker instead: `cp .env.example .env && docker compose up -d --build`
+- Model sizing by VRAM, gated models, LAN access, troubleshooting: **[docs/LOCAL_LLM.md](docs/LOCAL_LLM.md)**
+
 **Stack:** Next.js 15 (App Router) · FastAPI · vLLM · Zustand · React Query · Recharts · Tailwind
 
 New to the interface? The **[User Guide](docs/USER_GUIDE.md)** walks through every screen, setting
@@ -67,7 +91,7 @@ background before launching.
 
 ---
 
-## Quick start (Docker Compose)
+## Docker Compose alternative
 
 You need an NVIDIA GPU, a recent driver, the NVIDIA Container Toolkit, Docker Compose v2, and
 Linux or WSL2 (vLLM does not run natively on Windows or macOS). Roughly 15 GB of disk for the
@@ -97,23 +121,10 @@ troubleshooting — is in **[docs/LOCAL_LLM.md](docs/LOCAL_LLM.md)**.
 
 ---
 
-## Quick start (native, one command)
+## Running it later (native, one command)
 
-Needs Linux or WSL2 with an NVIDIA GPU, Python 3.11–3.13, [uv](https://docs.astral.sh/uv/),
-Node 22 and pnpm.
-
-**First time only** — get the code and install vLLM in its own environment (about 10 GB of CUDA
-wheels, one time):
-
-```bash
-git clone https://github.com/softmaxxer101/vllm-workbench.git
-cd vllm-workbench
-uv venv ~/vllm-env --python 3.12
-uv pip install --python ~/vllm-env/bin/python vllm
-```
-
-**Every session after that** is one command — it starts both servers, waits for them to answer
-and prints the URL:
+Already installed (see [Install](#install))? A session is one command — it starts both servers,
+waits for them to answer and prints the URL:
 
 ```bash
 ./dev.sh                 # or: make dev
